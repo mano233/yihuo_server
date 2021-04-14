@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ahnu.server.dao.ChatMsgMapperCustom">
+
+    <select id="getMsgs" resultType="com.ahnu.server.model.ChatMsg">
+        SELECT * FROM t_chat_msg WHERE sid = #{sid} ORDER BY ctime DESC
+    </select>
+
+</mapper>

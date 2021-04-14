@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ahnu.server.dao.ChatSessionMapperCustom">
+    <resultMap id="listWrap" type="com.ahnu.server.model.SessionListWrap">
+        <id column="session_id" jdbcType="INTEGER" property="sessionId"/>
+        <result column="gid" jdbcType="INTEGER" property="gid"/>
+        <result column="uid" jdbcType="INTEGER" property="uid"/>
+        <result column="last_msg" jdbcType="VARCHAR" property="lastMsg"/>
+        <result column="msg_id" jdbcType="INTEGER" property="msgId"/>
+        <result column="last_time" jdbcType="TIMESTAMP" property="lastTime"/>
+        <result column="unread_num" jdbcType="INTEGER" property="unreadNum"/>
+    </resultMap>
+    <select id="getSessionList" resultMap="listWrap">
+        SELECT *,SUM(read_time=0) as unread_num
+        FROM (
+                 SELECT t_chat_session.id as session_id,
+                        msg               as last_msg,
+                        t_chat_session.gid,
+                        t_chat_msg.uid,
+                        t_chat_msg.id     as msg_id,
+                        t_chat_msg.ctime as last_time,
+                        read_time
+                 FROM t_chat_session
+                          LEFT JOIN t_chat_msg ON t_chat_session.id = t_chat_msg.sid
+                 WHERE t_chat_session.from_uid = #{uid}
+                    OR t_chat_session.to_uid = #{uid}
+                 ORDER BY ctime DESC
+             ) as temp
+        GROUP BY gid
+    </select>
+    <select id="getSessionIdByUid" resultType="java.lang.Integer">
+        SELECT id FROM t_chat_session WHERE gid = #{gid} and (from_uid = #{uid} or to_uid = #{uid} )
+    </select>
+
+</mapper>

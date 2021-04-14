@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ahnu.server.dao.GoodsMapperCustom">
+    <resultMap id="BaseResultMap" type="com.ahnu.server.model.GoodsWrap">
+        <association property="goods" javaType="com.ahnu.server.model.Goods"
+                     resultMap="com.ahnu.server.dao.GoodsMapper.BaseResultMap">
+        </association>
+
+        <association property="member" javaType="com.ahnu.server.model.Member"
+                     resultMap="com.ahnu.server.dao.MemberMapper.BaseResultMap">
+        </association>
+    </resultMap>
+    <resultMap id="BaseResultMapDetail" type="com.ahnu.server.model.GoodsWrap">
+        <association property="goods" javaType="com.ahnu.server.model.Goods"
+                     resultMap="com.ahnu.server.dao.GoodsMapper.ResultMapWithBLOBs">
+        </association>
+
+        <association property="member" javaType="com.ahnu.server.model.Member"
+                     resultMap="com.ahnu.server.dao.MemberMapper.BaseResultMap">
+        </association>
+    </resultMap>
+    <select id="selectAll" resultMap="BaseResultMap" resultType="com.ahnu.server.model.GoodsWrap">
+        SELECT t_goods.id,
+               t_goods.ctime,
+               t_goods.uid,
+               ptime,
+               price,
+               title,
+               state,
+               catelog_id,
+               pre_img,
+               t_member.`status`,
+               level_value,
+               last_time,
+               `name`,
+               avatar_img
+        FROM t_goods
+                 LEFT JOIN t_member ON t_goods.uid = t_member.id
+
+    </select>
+    <select id="selectByType" resultMap="BaseResultMap" parameterType="int"
+            resultType="com.ahnu.server.model.GoodsWrap">
+        SELECT t_goods.id,
+               t_goods.ctime,
+               t_goods.uid,
+               ptime,
+               price,
+               title,
+               state,
+               catelog_id,
+               pre_img,
+               t_member.`status`,
+               level_value,
+               last_time,
+               `name`,
+               avatar_img
+        FROM t_goods
+                 LEFT JOIN t_member ON t_goods.uid = t_member.id
+        where catelog_id = #{catelogId}
+    </select>
+    <select id="getById" resultMap="BaseResultMapDetail" parameterType="int">
+        SELECT t_goods.id,
+               t_goods.ctime,
+               t_goods.uid,
+               ptime,
+               contnet,
+               price,
+               title,
+               state,
+               catelog_id,
+               pre_img,
+               t_member.`status`,
+               level_value,
+               last_time,
+               `name`,
+               avatar_img
+        FROM t_goods
+                 LEFT JOIN t_member ON t_goods.uid = t_member.id
+        where t_goods.id = ${id}
+    </select>
+    <select id="searchByEqual" resultMap="BaseResultMap" resultType="com.ahnu.server.model.GoodsWrap"
+            parameterType="com.ahnu.server.model.Goods">
+        SELECT t_goods.id,
+        t_goods.ctime,
+        t_goods.uid,
+        ptime,
+        price,
+        title,
+        state,
+        catelog_id,
+        pre_img,
+        t_member.`status`,
+        level_value,
+        last_time,
+        `name`,
+        avatar_img
+        FROM t_goods
+        LEFT JOIN t_member ON t_goods.uid = t_member.id
+        where
+        <if test="title">
+            title like CONCAT(CONCAT('%', #{title}), '%')
+        </if>
+
+        <trim prefix="and">
+
+            <if test="state">
+                state = #{state}
+            </if>
+            <if test="uid">
+                uid = #{uid}
+            </if>
+
+            <if test="ptime">
+                ptime = #{ptime}
+            </if>
+            <if test="ctime">
+                ctime = #{time}
+            </if>
+        </trim>
+
+    </select>
+    <select id="getLimit" resultMap="com.ahnu.server.dao.GoodsMapper.BaseResultMap">
+        select id,
+               ctime,
+               uid,
+               title,
+               pre_img,
+               price,
+               ptime,
+               state,
+               page_view,
+               catelog_id
+        from t_goods
+        order by page_view desc,ptime desc
+        limit #{limit}
+    </select>
+    <select id="getCateLogs" resultType="java.util.HashMap">
+        select * from t_catelog
+    </select>
+    <select id="getByState" resultMap="BaseResultMap">
+        SELECT
+            t_goods.*,
+            t_member.`status`,
+            level_value,
+            last_time,
+            `name`,
+            avatar_img
+        FROM
+            t_goods
+                LEFT JOIN t_member ON t_goods.uid = t_member.id
+        WHERE
+            uid = #{uid}
+          AND state = #{state}
+    </select>
+</mapper>

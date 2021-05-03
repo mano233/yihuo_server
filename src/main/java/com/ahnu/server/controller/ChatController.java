@@ -68,4 +68,11 @@ public class ChatController {
         return jsonBody;
     }
 
+    @GetMapping("/session/{id}")
+    public ResJsonBody getSessionInfo(@PathVariable("id")int sid)throws Exception{
+        ResJsonBody resJsonBody = new ResJsonBody();
+        resJsonBody.setContent(chatSessionMapper.selectByPrimaryKey(sid));
+        return resJsonBody;
+    }
+
 }

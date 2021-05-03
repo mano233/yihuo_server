@@ -6,6 +6,7 @@ public class ResJsonBody {
     String msg;
 
     public ResJsonBody() {
+        code = 200;
     }
 
 

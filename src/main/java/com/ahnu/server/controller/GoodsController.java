@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,7 @@ import javax.websocket.server.PathParam;
 import java.io.File;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.Date;
 
 @RestController
@@ -57,6 +59,19 @@ public class GoodsController {
         return response;
     }
 
+    @PostMapping("/deal/{gid}")
+    public ResJsonBody dealGood(@PathVariable("gid")int gid)throws Exception{
+        ResJsonBody response = new ResJsonBody();
+        Goods sel = goodsMapper.selectByPrimaryKey(gid);
+        int uid = (int) SecurityContextHolder.getContext().getAuthentication().getCredentials();
+        if(uid == sel.getUid() && sel.getState()==0){
+            sel.setState((byte) 1);
+            goodsMapper.updateByPrimaryKey(sel);
+        }else{
+            response.setCode(6001);
+        }
+        return response;
+    }
     @GetMapping("")
     public ResJsonBody getByCateLogId(@RequestParam("pageSize") Integer pageSize, @RequestParam("pageNum") Integer pageNum,
                                       @RequestParam(value = "catelogId", required = false) Integer catelogId) throws Exception {
@@ -195,11 +210,44 @@ public class GoodsController {
         }
     }
 
-    @PostMapping("/state/{state}")
-    public ResJsonBody getGoodsByState(@PathVariable("state") int state){
+    @PostMapping("/state/{uid}/{state}")
+    public ResJsonBody getGoodsByState(@PathVariable("uid")int uid,@PathVariable("state") int state){
         ResJsonBody resJsonBody = new ResJsonBody();
-        int uid = (Integer) SecurityContextHolder.getContext().getAuthentication().getCredentials();
+        // int uid = (Integer) SecurityContextHolder.getContext().getAuthentication().getCredentials();
         resJsonBody.setContent(goodsMapperCustom.getByState(uid,(byte)state));
+        return resJsonBody;
+    }
+    @PostMapping("/delete/{gid}")
+    public ResJsonBody deleteGood(@PathVariable("gid")int gid)throws Exception{
+        ResJsonBody resJsonBody = new ResJsonBody();
+        int contextUid = (Integer) SecurityContextHolder.getContext().getAuthentication().getCredentials();
+        boolean isAdmin = false;
+        for(GrantedAuthority s: SecurityContextHolder.getContext().getAuthentication().getAuthorities()){
+            if(s.getAuthority().contains("admin")){
+                isAdmin = true;
+                break;
+            }
+        }
+        Goods selGood = goodsMapper.selectByPrimaryKey(gid);
+        if(selGood==null){
+            resJsonBody.setMsg("找不到商品");
+            return resJsonBody;
+        }
+        Integer createUser = selGood.getUid();
+        if(isAdmin){
+            resJsonBody.setMsg("删除成功（由管理员操作）");
+            goodsMapper.deleteByPrimaryKey(gid);
+        }else{
+            if(createUser != contextUid){
+                resJsonBody.setCode(6001);
+                resJsonBody.setMsg("你无权删除这个商品");
+            }else{
+                resJsonBody.setMsg("删除成功");
+                // selGood.setState((byte) -1);
+                // goodsMapper.updateByPrimaryKey(selGood);
+                goodsMapper.deleteByPrimaryKey(gid);
+            }
+        }
         return resJsonBody;
     }
 

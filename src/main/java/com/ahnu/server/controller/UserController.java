@@ -96,7 +96,6 @@ public class UserController {
     public ResJsonBody auditReject(@PathVariable("uid") int uid) throws Exception {
         ResJsonBody resJsonBody = new ResJsonBody();
         service.changeUserStatus(uid, 0);
-        resJsonBody.setMsg("ok");
         return resJsonBody;
     }
 
@@ -118,6 +117,7 @@ public class UserController {
         resJsonBody.setContent(me);
         return resJsonBody;
     }
+
     @PostMapping("/login")
     public ResJsonBody login(@RequestBody String json) throws JsonProcessingException {
         ResJsonBody resJsonBody = new ResJsonBody();

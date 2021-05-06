@@ -40,11 +40,6 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // if(!JwtTokenUtils.isExpiration(tokenHeader.replace(JwtTokenUtils.TOKEN_PREFIX,""))){
-        //     //设置上下文
-        //     UsernamePasswordAuthenticationToken authentication = getAuthentication(tokenHeader);
-        //     SecurityContextHolder.getContext().setAuthentication(authentication);
-        // }
         super.doFilterInternal(request, response, chain);
     }
 

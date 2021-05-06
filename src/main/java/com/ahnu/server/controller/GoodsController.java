@@ -1,9 +1,11 @@
 package com.ahnu.server.controller;
 
 import com.ahnu.server.dao.ChatSessionMapperCustom;
+import com.ahnu.server.dao.CommentMapper;
 import com.ahnu.server.dao.GoodsMapper;
 import com.ahnu.server.dao.GoodsMapperCustom;
 import com.ahnu.server.helper.FastDFSHelper;
+import com.ahnu.server.model.Comment;
 import com.ahnu.server.model.Goods;
 import com.ahnu.server.model.ResJsonBody;
 import com.ahnu.server.serivce.impl.GoodsServiceImpl;
@@ -31,6 +33,7 @@ public class GoodsController {
     GoodsServiceImpl service;
     FastDFSHelper fastDfsHelper;
     ChatSessionMapperCustom chatSessionMapperCustom;
+    CommentMapper commentMapper;
     static Logger logger;
 
     GoodsMapper goodsMapper;
@@ -41,10 +44,11 @@ public class GoodsController {
     }
 
     @Autowired
-    public GoodsController(GoodsServiceImpl service, FastDFSHelper fastDfsHelper, ChatSessionMapperCustom chatSessionMapperCustom, GoodsMapper goodsMapper, GoodsMapperCustom goodsMapperCustom) {
+    public GoodsController(GoodsServiceImpl service, FastDFSHelper fastDfsHelper, ChatSessionMapperCustom chatSessionMapperCustom, CommentMapper commentMapper, GoodsMapper goodsMapper, GoodsMapperCustom goodsMapperCustom) {
         this.service = service;
         this.fastDfsHelper = fastDfsHelper;
         this.chatSessionMapperCustom = chatSessionMapperCustom;
+        this.commentMapper = commentMapper;
         this.goodsMapper = goodsMapper;
         this.goodsMapperCustom = goodsMapperCustom;
     }
@@ -154,6 +158,7 @@ public class GoodsController {
         return jsonBody;
     }
 
+    @PreAuthorize("hasRole('user')")
     @GetMapping("/{id}/session")
     public ResJsonBody getSessionId(@PathVariable("id") int gid) {
         ResJsonBody jsonBody = new ResJsonBody();
@@ -167,6 +172,26 @@ public class GoodsController {
         ResJsonBody resJsonBody = new ResJsonBody();
         resJsonBody.setContent(service.getHot(10));
         return resJsonBody;
+    }
+
+    @PreAuthorize("hasRole('user')")
+    @PostMapping("/comment")
+    public ResJsonBody addComment(@RequestParam(required = true)String content,@RequestParam(required = true) Integer gid){
+        ResJsonBody response = new ResJsonBody();
+        Comment comment = new Comment();
+        comment.setgId(gid);
+        comment.setrTime(new Date());
+        comment.setuId((Integer) SecurityContextHolder.getContext().getAuthentication().getCredentials());
+        comment.setContent(content);
+        commentMapper.insert(comment);
+        return response;
+    }
+
+    @GetMapping("/comment/{gid}")
+    public ResJsonBody getComment(@PathVariable("gid")Integer gid){
+        ResJsonBody response = new ResJsonBody();
+        response.setContent(commentMapper.selectByGid(gid));
+        return response;
     }
 
     @PreAuthorize("hasRole('user')")

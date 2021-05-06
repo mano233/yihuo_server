@@ -25,6 +25,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebM
         http.cors().and().csrf().disable().authorizeRequests()
                 .antMatchers("/chat/**").permitAll()
                 .antMatchers(HttpMethod.POST,"/user/login").permitAll()
+                .antMatchers(HttpMethod.GET,"/comment/**").permitAll()
                 .antMatchers(HttpMethod.POST,"/user/reg").permitAll()
                 .antMatchers(HttpMethod.GET,"/goods*","/goods/**").permitAll()
                 .antMatchers(HttpMethod.POST,"/goods/search/**").permitAll()
@@ -41,6 +42,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebM
                     ObjectMapper objectMapper = new ObjectMapper();
                     ResJsonBody jsonBody = new ResJsonBody();
                     jsonBody.setContent("用户访问资源没有携带正确的token");
+                    jsonBody.setCode(204);
                     response.setContentType("application/json;charset=utf-8");
                     response.getWriter().println(objectMapper.writeValueAsString(jsonBody));
                 })
@@ -48,7 +50,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebM
                 .accessDeniedHandler((request, response, e) -> {
                     ObjectMapper objectMapper = new ObjectMapper();
                     ResJsonBody jsonBody = new ResJsonBody();
-                    jsonBody.setContent("用户访问资源没有携带正确的token");
+                    jsonBody.setContent("没有访问权限");
+                    jsonBody.setCode(205);
                     response.setContentType("application/json;charset=utf-8");
                     response.getWriter().println(objectMapper.writeValueAsString(jsonBody));
                 });

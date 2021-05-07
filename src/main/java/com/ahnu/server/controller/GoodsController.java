@@ -242,6 +242,42 @@ public class GoodsController {
         resJsonBody.setContent(goodsMapperCustom.getByState(uid,(byte)state));
         return resJsonBody;
     }
+    @PreAuthorize("hasRole('user') OR hasRole('admin')")
+    @PutMapping("/update")
+    public ResJsonBody updateGoods(@RequestBody Goods goods){
+        ResJsonBody resJsonBody = new ResJsonBody();
+        int contextUid = (Integer) SecurityContextHolder.getContext().getAuthentication().getCredentials();
+        boolean isAdmin = false;
+        for(GrantedAuthority s: SecurityContextHolder.getContext().getAuthentication().getAuthorities()){
+            if(s.getAuthority().contains("admin")){
+                isAdmin = true;
+                break;
+            }
+        }
+        Goods find = goodsMapper.selectByPrimaryKey(goods.getId());
+        if(find==null){
+            resJsonBody.setCode(6002);
+            resJsonBody.setMsg("找不到商品");
+            return resJsonBody;
+        }
+        goods.setCtime(new Date());
+        goods.setUid(contextUid);
+        goods.setState((byte) 0);
+        if(isAdmin){
+            goodsMapper.updateByPrimaryKeyWithBLOBs(goods);
+            resJsonBody.setMsg("由管理员更新");
+            return resJsonBody;
+        }
+        if(find.getUid()!=contextUid){
+            resJsonBody.setCode(6001);
+            resJsonBody.setMsg("你无权删除这个商品");
+            return resJsonBody;
+        }
+        goodsMapper.updateByPrimaryKeyWithBLOBs(goods);
+        resJsonBody.setMsg("更新成功");
+        return resJsonBody;
+    }
+
     @PostMapping("/delete/{gid}")
     public ResJsonBody deleteGood(@PathVariable("gid")int gid)throws Exception{
         ResJsonBody resJsonBody = new ResJsonBody();
